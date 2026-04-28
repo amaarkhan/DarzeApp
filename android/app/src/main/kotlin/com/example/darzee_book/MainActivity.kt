@@ -1,4 +1,4 @@
-package com.example.darzee_book
+package com.amaarkhan.darzeapp
 
 import io.flutter.embedding.android.FlutterActivity
 
