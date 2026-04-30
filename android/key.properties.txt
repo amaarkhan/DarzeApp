@@ -1,0 +1,4 @@
+storePassword=amaar123
+keyPassword=amaar123
+keyAlias=upload
+storeFile=../upload-keystore.jks

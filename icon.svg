@@ -1,0 +1,71 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2C3E50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34495E;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E74C3C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C0392B;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#grad1)"/>
+  
+  <!-- Decorative arc at top -->
+  <path d="M 120 200 Q 256 80 392 200" fill="none" stroke="#E74C3C" stroke-width="8" opacity="0.3"/>
+  
+  <!-- Measuring tape (curved) -->
+  <path d="M 150 280 Q 256 220 362 280" fill="none" stroke="#F39C12" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="150" cy="280" r="6" fill="#F39C12"/>
+  <circle cx="362" cy="280" r="6" fill="#F39C12"/>
+  
+  <!-- Measuring tape marks -->
+  <line x1="180" y1="275" x2="180" y2="285" stroke="#F39C12" stroke-width="2"/>
+  <line x1="210" y1="273" x2="210" y2="287" stroke="#F39C12" stroke-width="2"/>
+  <line x1="240" y1="270" x2="240" y2="290" stroke="#F39C12" stroke-width="2"/>
+  <line x1="270" y1="270" x2="270" y2="290" stroke="#F39C12" stroke-width="2"/>
+  <line x1="300" y1="273" x2="300" y2="287" stroke="#F39C12" stroke-width="2"/>
+  <line x1="330" y1="275" x2="330" y2="285" stroke="#F39C12" stroke-width="2"/>
+  
+  <!-- Needle -->
+  <g filter="url(#shadow)">
+    <!-- Needle body -->
+    <line x1="256" y1="150" x2="200" y2="340" stroke="#C0392B" stroke-width="10" stroke-linecap="round"/>
+    <!-- Needle eye (hole) -->
+    <circle cx="220" cy="310" r="8" fill="#2C3E50" stroke="#E74C3C" stroke-width="2"/>
+  </g>
+  
+  <!-- Thread spool top -->
+  <ellipse cx="200" cy="330" rx="35" ry="12" fill="#E74C3C" opacity="0.4"/>
+  
+  <!-- Thread flowing from needle -->
+  <path d="M 220 318 Q 190 350 170 390" fill="none" stroke="url(#grad2)" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 220 318 Q 140 360 120 420" fill="none" stroke="url(#grad2)" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+  
+  <!-- Scissors -->
+  <g transform="translate(310, 320)">
+    <!-- Left blade -->
+    <path d="M -15 -15 Q -25 0 -20 25" fill="none" stroke="#F39C12" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="-15" cy="-15" r="6" fill="#F39C12"/>
+    
+    <!-- Right blade -->
+    <path d="M 15 -15 Q 25 0 20 25" fill="none" stroke="#F39C12" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="15" cy="-15" r="6" fill="#F39C12"/>
+    
+    <!-- Center pivot -->
+    <circle cx="0" cy="5" r="4" fill="#2C3E50"/>
+  </g>
+  
+  <!-- Decorative buttons/circles at bottom -->
+  <circle cx="200" cy="420" r="8" fill="#E74C3C" opacity="0.6"/>
+  <circle cx="256" cy="430" r="8" fill="#F39C12" opacity="0.6"/>
+  <circle cx="312" cy="420" r="8" fill="#E74C3C" opacity="0.6"/>
+  
+  <!-- App name indicator (subtle) -->
+  <text x="256" y="470" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ECF0F1" text-anchor="middle" opacity="0.4">DARZEE</text>
+</svg>
