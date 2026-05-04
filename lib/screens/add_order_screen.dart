@@ -69,7 +69,8 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
       } else {
         filteredCustomers = customers.where((customer) {
           return customer.name.toLowerCase().contains(query) ||
-              customer.phone.toLowerCase().contains(query);
+              customer.phone.toLowerCase().contains(query) ||
+              customer.id.toLowerCase().contains(query);
         }).toList();
       }
 
@@ -188,9 +189,12 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
                   DropdownButtonFormField<String>(
                     value: selectedCustomerId,
                     items: filteredCustomers.map((customer) {
+                      final shortId = customer.id.length > 8
+                          ? customer.id.substring(0, 8)
+                          : customer.id;
                       return DropdownMenuItem(
                         value: customer.id,
-                        child: Text('${customer.name} - ${customer.phone}'),
+                        child: Text('${customer.name} - ${customer.phone} - ID: $shortId'),
                       );
                     }).toList(),
                     onChanged: (newValue) {

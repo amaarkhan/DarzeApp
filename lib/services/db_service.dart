@@ -71,8 +71,24 @@ class DatabaseService {
     final lowerQuery = query.toLowerCase();
     return customers.where((customer) {
       return customer.name.toLowerCase().contains(lowerQuery) ||
-          customer.phone.toLowerCase().contains(lowerQuery);
+          customer.phone.toLowerCase().contains(lowerQuery) ||
+          customer.id.toLowerCase().contains(lowerQuery);
     }).toList();
+  }
+
+  Future<void> deleteCustomer(String customerId) async {
+    final prefs = await preferences;
+    final customers = _readList(prefs, _customersKey);
+    customers.removeWhere((entry) => entry['id'] == customerId);
+    await _writeList(prefs, _customersKey, customers);
+
+    final orders = _readList(prefs, _ordersKey);
+    orders.removeWhere((entry) => entry['customerId'] == customerId);
+    await _writeList(prefs, _ordersKey, orders);
+
+    final measurements = _readList(prefs, _measurementsKey);
+    measurements.removeWhere((entry) => entry['customerId'] == customerId);
+    await _writeList(prefs, _measurementsKey, measurements);
   }
 
   // Order operations

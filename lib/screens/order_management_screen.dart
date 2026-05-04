@@ -221,6 +221,14 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                           fontSize: 16,
                         ),
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'ID: ${order.customerId}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         order.clothType,

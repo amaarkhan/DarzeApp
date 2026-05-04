@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/customer.dart';
+import '../services/customer_pdf_service.dart';
 import '../services/db_service.dart';
 import '../utils/app_strings.dart';
 import 'add_customer_screen.dart';
@@ -15,6 +18,7 @@ class CustomerListScreen extends StatefulWidget {
 
 class _CustomerListScreenState extends State<CustomerListScreen> {
   final db = DatabaseService();
+  final pdfService = CustomerPdfService();
   final searchController = TextEditingController();
   List<Customer> customers = [];
   List<Customer> filteredCustomers = [];
@@ -47,6 +51,97 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     }
   }
 
+  Future<void> _exportCustomersPdf({required bool share}) async {
+    if (filteredCustomers.isEmpty) {
+      _showSnackBar(widget.language == 'ur'
+          ? 'کوئی کسٹمر موجود نہیں'
+          : 'No customers to export');
+      return;
+    }
+
+    try {
+      final title = widget.language == 'ur' ? 'کسٹمر لسٹ' : 'Customer List';
+      final bytes = await pdfService.buildCustomerListPdf(
+        filteredCustomers,
+        title: title,
+      );
+      final fileName =
+          'customers_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.pdf';
+      final file = await pdfService.savePdf(bytes, fileName);
+
+      if (share) {
+        await Share.shareXFiles(
+          [XFile(file.path)],
+          text: widget.language == 'ur'
+              ? 'کسٹمر لسٹ'
+              : 'Customer list',
+        );
+      } else {
+        _showSnackBar(
+          widget.language == 'ur'
+              ? 'پی ڈی ایف فائلز میں محفوظ ہوگئی'
+              : 'PDF saved to files: ${file.path}',
+        );
+      }
+    } catch (e) {
+      _showSnackBar('Error: $e');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.blue.shade600,
+      ),
+    );
+  }
+
+  void _editCustomer(Customer customer) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddCustomerScreen(
+          language: widget.language,
+          customer: customer,
+        ),
+      ),
+    ).then((_) => _loadCustomers());
+  }
+
+  Future<void> _confirmDeleteCustomer(Customer customer) async {
+    final isUrdu = widget.language == 'ur';
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(isUrdu ? 'کسٹمر ڈیلیٹ کریں؟' : 'Delete customer?'),
+          content: Text(
+            isUrdu
+                ? 'یہ کسٹمر، اس کے آرڈرز اور پیمائشیں ڈیلیٹ ہو جائیں گی۔'
+                : 'This will delete the customer, their orders, and measurements.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(isUrdu ? 'نہیں' : 'Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade600),
+              child: Text(isUrdu ? 'ڈیلیٹ' : 'Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      await db.deleteCustomer(customer.id);
+      _loadCustomers();
+    }
+  }
+
   String _getString(String key) => AppStrings.get(key, widget.language);
 
   @override
@@ -69,6 +164,30 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           ],
         ),
         elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'share') {
+                _exportCustomersPdf(share: true);
+              } else if (value == 'save') {
+                _exportCustomersPdf(share: false);
+              }
+            },
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  value: 'share',
+                  child: Text(isUrdu ? 'پی ڈی ایف شیئر کریں' : 'Share PDF'),
+                ),
+                PopupMenuItem(
+                  value: 'save',
+                  child: Text(isUrdu ? 'پی ڈی ایف محفوظ کریں' : 'Save PDF'),
+                ),
+              ];
+            },
+            icon: const Icon(Icons.picture_as_pdf),
+          ),
+        ],
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -87,7 +206,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             child: TextField(
               controller: searchController,
               decoration: InputDecoration(
-                hintText: isUrdu ? 'نام یا فون نمبر سے تلاش کریں' : 'Search by name or phone...',
+                hintText: isUrdu ? 'نام، فون نمبر یا آئی ڈی سے تلاش کریں' : 'Search by name, phone, or ID...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -162,17 +281,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     return Card(
       elevation: 0,
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddCustomerScreen(
-                language: widget.language,
-                customer: customer,
-              ),
-            ),
-          ).then((_) => _loadCustomers());
-        },
+        onTap: () => _editCustomer(customer),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -214,7 +323,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'ID: ${customer.id.substring(0, 8)}...',
+                      'ID: ${customer.id}',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey.shade500,
@@ -223,11 +332,17 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                   ],
                 ),
               ),
-              // Arrow Icon
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 18,
-                color: Colors.grey.shade400,
+              IconButton(
+                tooltip: 'Edit',
+                icon: const Icon(Icons.edit),
+                color: Colors.blue.shade600,
+                onPressed: () => _editCustomer(customer),
+              ),
+              IconButton(
+                tooltip: 'Delete',
+                icon: const Icon(Icons.delete_outline),
+                color: Colors.red.shade600,
+                onPressed: () => _confirmDeleteCustomer(customer),
               ),
             ],
           ),

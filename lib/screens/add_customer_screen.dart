@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../models/customer.dart';
 import '../models/measurement.dart';
@@ -32,6 +33,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   late TextEditingController painchaController;
   late TextEditingController golController;
   late TextEditingController notesController;
+  late TextEditingController customerIdController;
   
   String selectedClothType = 'Shalwar Kameez (Gents)';
   String selectedCollarType = 'Round';
@@ -51,6 +53,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
     painchaController = TextEditingController();
     golController = TextEditingController();
     notesController = TextEditingController();
+    customerIdController = TextEditingController(text: widget.customer?.id ?? '');
     
     if (widget.customer != null) {
       _loadMeasurements();
@@ -81,14 +84,17 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   String _getString(String key) => AppStrings.get(key, widget.language);
 
   Future<void> _saveCustomer() async {
-    if (nameController.text.isEmpty || phoneController.text.isEmpty) {
+    final customerId = customerIdController.text.trim();
+    if (customerId.isEmpty || nameController.text.isEmpty || phoneController.text.isEmpty) {
       _showSnackBar('Please fill all required fields');
+      return;
+    }
+    if (!RegExp(r'^\d+$').hasMatch(customerId)) {
+      _showSnackBar('Customer ID must contain only numbers');
       return;
     }
 
     try {
-      final customerId = widget.customer?.id ?? const Uuid().v4();
-      
       // Save/Update Customer
       final customer = Customer(
         id: customerId,
@@ -159,6 +165,31 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
             // Customer Information Section
             _buildSectionTitle('Customer Information'),
             const SizedBox(height: 16),
+            TextField(
+              controller: customerIdController,
+              enabled: widget.customer == null,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: 'Customer ID (numbers only)',
+                prefixIcon: const Icon(Icons.tag),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+              ),
+            ),
+            const SizedBox(height: 12),
             _buildTextField(nameController, 'Customer Name', Icons.person),
             const SizedBox(height: 12),
             _buildTextField(phoneController, 'Phone Number', Icons.phone, TextInputType.phone),
@@ -420,6 +451,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
 
   @override
   void dispose() {
+    customerIdController.dispose();
     nameController.dispose();
     phoneController.dispose();
     colorController.dispose();
